@@ -4,7 +4,7 @@
 #include <string>
 #include <GLFW/glfw3.h>
 #include <iostream>
-//#include <SOIL/SOIL.h>
+#include <stb_image.h>
 using std::cerr;
 using std::endl;
 using std::string;
@@ -15,32 +15,32 @@ class SkyBox{
 
     unsigned int loadCubemap(vector<string> faces, const string sky)
     {
-        unsigned int textureID;
+        unsigned int textureID=0;
         glGenTextures(1, &textureID);
         glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
-        string path = string("../textures/skybox/") + sky + string("/");
-        int width, height, nrChannels;
+       /* string path = string("../textures/skybox/") + sky + string("/");
         for (unsigned int i = 0; i < faces.size(); i++)
         {
             string file = path + faces[i];
+            int width, height, nrChannels;
             cerr << file << endl;
-            //GLubyte* data = SOIL_load_image(file.c_str(), &width, &height, &nrChannels, SOIL_LOAD_AUTO);
-            //if (data)
-            //{
-            //    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
-            //                0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
-            //    ); 
-            //	// glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-	           // SOIL_free_image_data(data);
-            //    // glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-            //}
-            //else
-            //{
-            //    std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
-            //    SOIL_free_image_data(data);
-            //}
-        }
+            GLubyte* data = stbi_load(file.c_str(), &width, &height, &nrChannels, STBI_rgb);
+            if (data)
+            {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
+                            0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+                ); 
+            	 glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+                stbi_image_free(data);
+                 glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+            }
+            else
+            {
+                std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+                stbi_image_free(data);
+            }
+        }*/
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -89,17 +89,17 @@ class SkyBox{
 	    glGenBuffers(1, &VBOindices);
     
         cubemapTexture = loadCubemap(faces, sky);
-	    glBindVertexArray(vao); GL_CHECK_ERRORS;
+	    glBindVertexArray(vao); 
 		
 		//передаем в шейдерную программу атрибут координат вершин
-	    glBindBuffer(GL_ARRAY_BUFFER, VBOvertices); GL_CHECK_ERRORS;
-	    glBufferData(GL_ARRAY_BUFFER, sizeof(sky_vertices) ,sky_vertices, GL_STATIC_DRAW); GL_CHECK_ERRORS;
-	    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0); GL_CHECK_ERRORS;
-	    glEnableVertexAttribArray(0); GL_CHECK_ERRORS;
+	    glBindBuffer(GL_ARRAY_BUFFER, VBOvertices); 
+	    glBufferData(GL_ARRAY_BUFFER, sizeof(sky_vertices) ,sky_vertices, GL_STATIC_DRAW); 
+	    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0);
+	    glEnableVertexAttribArray(0); 
 
 		//передаем в шейдерную программу индексы
-	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,VBOindices); GL_CHECK_ERRORS;
-	    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(sky_indices), sky_indices, GL_STATIC_DRAW); GL_CHECK_ERRORS;
+	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,VBOindices); 
+	    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(sky_indices), sky_indices, GL_STATIC_DRAW); 
 
 	    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -107,7 +107,7 @@ class SkyBox{
     }
 
     public:
-        GLuint vao;
+        GLuint vao=0;
 
         SkyBox(const float size = 1, const string skybox = "1"){
             Init(size, skybox);
@@ -125,8 +125,8 @@ class SkyBox{
             glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
             shader.SetUniform("skybox", 4);
             
-            glDrawElements(GL_TRIANGLE_STRIP, 36, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
-            glBindVertexArray(0); GL_CHECK_ERRORS;
+            glDrawElements(GL_TRIANGLE_STRIP, 36, GL_UNSIGNED_INT, nullptr); 
+            glBindVertexArray(0); 
             shader.StopUseShader();
         }
 

@@ -3,8 +3,8 @@
 
 #include <unordered_map>
 #include "common.h"
-
 #include "LiteMath.h"
+
 using namespace LiteMath;
 
 class ShaderProgram

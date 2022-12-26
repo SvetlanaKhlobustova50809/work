@@ -17,12 +17,10 @@ void averaging(int radius);
 void avg_neighbor(int from_x, int from_y, unsigned int size);
 float median_filter(int from_x, int from_y, unsigned int size);
 
-
 void diamond_square(const int size){
 
     assert(terrain_size > std::min(m_rows, m_cols));
-    if (isRandom)
-        srand(time(NULL));
+    if (isRandom) srand(time(NULL));
     map[0][0] = 1;
     map[0][terrain_size-1] = -5;
     map[terrain_size-1][0] = 20;
@@ -43,7 +41,6 @@ void diamond_square(const int size){
         step_size /= 2;
     }
     normalization();
-    // averaging(1);
     if (isMedian)
         median(1);
 }
@@ -60,7 +57,7 @@ void square_step(int x, int y, int step) {
 
     float average = (a + b + c + d) / 4;
     float random_range = -r * half + rand() % int(2*r*half + 1);
-
+    
     map[x + half][y + half] = average + random_range;
 }
 
@@ -82,6 +79,7 @@ void diamond_step(int x, int y, int step) {
     c = map[x+half][y-half];
     average = (a + b + c) / 3;
     random_range = -r * half + rand() % int(2*r*half + 1);
+
     map[x][y-half] = average + random_range;
     
     b = map[x+half][y+half];

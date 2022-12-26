@@ -7,14 +7,17 @@
 #include <iostream>
 #include <GLFW/glfw3.h>
 #include <landscape.h>
+#include <stb_image.h>
 
-
+/**
+@brief Класс, отвечающий за отрисовку тукстур скал и воды
+*/
 class SeaPlane
 {
-	GLuint vboVertices, vboIndices, vboTexCoords;
-	GLuint aqua_tex;
+	GLuint vboVertices=0, vboIndices=0, vboTexCoords=0;
+	GLuint aqua_tex=0;
 	int numIndices = 0;
-	int terrain_size;
+	int terrain_size=0;
 
 public:
 	GLuint load_texture()
@@ -23,10 +26,10 @@ public:
 		glActiveTexture(GL_TEXTURE5);
 		glBindTexture(GL_TEXTURE_2D, aqua_tex);
 		int width, height;
-		//unsigned char *image = SOIL_load_image("../textures/aqua1.png", &width, &height, 0, SOIL_LOAD_RGB);
-		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		unsigned char *image = stbi_load("../textures/aqua1.png", &width, &height, 0, STBI_rgb);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 		glGenerateMipmap(GL_TEXTURE_2D);
-		//SOIL_free_image_data(image);
+		stbi_image_free(image);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		return aqua_tex;
@@ -37,23 +40,27 @@ public:
 
 		numIndices = 2 * cols * (rows - 1) + rows - 1;
 
-		std::vector<GLfloat> vertices_vec; //вектор атрибута координат вершин
+		//! вектор атрибута координат вершин
+		std::vector<GLfloat> vertices_vec; 
 		vertices_vec.reserve(rows * cols * 3);
 
-		std::vector<GLfloat> normals_vec; //вектор атрибута нормалей к вершинам
+		//! вектор атрибута нормалей к вершинам
+		std::vector<GLfloat> normals_vec; 
 		normals_vec.reserve(rows * cols * 3);
 
-		std::vector<GLfloat> texcoords_vec; //вектор атрибут текстурных координат вершин
+		//! вектор атрибут текстурных координат вершин
+		std::vector<GLfloat> texcoords_vec; 
 		texcoords_vec.reserve(rows * cols * 2);
 
-		std::vector<float3> normals_vec_tmp(rows * cols, float3(0.0f, 0.0f, 0.0f)); //временный вектор нормалей, используемый для расчетов
+		//! временный вектор нормалей, используемый для расчетов
+		std::vector<float3> normals_vec_tmp(rows * cols, float3(0.0f, 0.0f, 0.0f)); 
 
-		std::vector<int3> faces; //вектор граней (треугольников), каждая грань - три
-								 //индекса вершин, её составляющих; используется для
-								 //удобства расчета нормалей
+		//! вектор граней (треугольников), каждая грань - три индекса вершин, её составляющих; используется для удобства расчета нормалей
+		std::vector<int3> faces; 
 		faces.reserve(numIndices / 3);
 
-		std::vector<GLuint> indices_vec; //вектор индексов вершин для передачи шейдерной программе
+		//! вектор индексов вершин для передачи шейдерной программе
+		std::vector<GLuint> indices_vec; 
 		indices_vec.reserve(numIndices);
 
 		// Срез уровеня моря
@@ -80,9 +87,6 @@ public:
 				float yy = Sea[z][x];
 				if( !(x == 0 || z == 0 || x == cols - 1 || z == rows - 1 ) && map[z][x] <= 7.0f)
 					yy = sinf((3.0f*timer + sqrt(coord))/4.0f)/3.0f + Sea[z][x];
-				
-				// float yy = float(sin((((timer + x/5.0f)*40.0f)/360.0f)*3.141592654*2.0f)) + Sea[x][z];
-				// float yy = Sea[x][z];
 
 				vertices_vec.push_back(xx);
 				vertices_vec.push_back(yy);
@@ -97,13 +101,13 @@ public:
 			}
 		}
 
-		// primitive restart - специальный индекс, который обозначает конец строки из
-		// треугольников в triangle_strip
-		//после этого индекса формирование треугольников из массива индексов начнется
-		//заново - будут взяты следующие 3 индекса для первого треугольника
-		//и далее каждый последующий индекс будет добавлять один новый треугольник
-		//пока снова не встретится primitive restart index
 
+		/*! специальный индекс, который обозначает конец строки из треугольников в triangle_strip
+		* после этого индекса формирование треугольников из массива индексов начнется
+		* заново - будут взяты следующие 3 индекса для первого треугольника
+		* и далее каждый последующий индекс будет добавлять один новый треугольник
+		* пока снова не встретится primitive restart index
+		*/
 		int primRestart = cols * rows;
 
 		for (int x = 0; x < cols - 1; ++x)
@@ -229,33 +233,33 @@ public:
 		glGenBuffers(1, &vboTexCoords);
 
 		glBindVertexArray(vao_sea);
-		GL_CHECK_ERRORS;
+
 		{
 
 			//передаем в шейдерную программу атрибут координат вершин
-			glBindBuffer(GL_ARRAY_BUFFER, vboVertices); GL_CHECK_ERRORS;
-			glBufferData(GL_ARRAY_BUFFER, vertices_vec.size() * sizeof(GL_FLOAT), &vertices_vec[0], GL_STREAM_DRAW); GL_CHECK_ERRORS;
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid *)0); GL_CHECK_ERRORS;
-			glEnableVertexAttribArray(0); GL_CHECK_ERRORS;
+			glBindBuffer(GL_ARRAY_BUFFER, vboVertices); 
+			glBufferData(GL_ARRAY_BUFFER, vertices_vec.size() * sizeof(GL_FLOAT), &vertices_vec[0], GL_STREAM_DRAW);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid *)0); 
+			glEnableVertexAttribArray(0);
 
 			//передаем в шейдерную программу атрибут нормалей
-			glBindBuffer(GL_ARRAY_BUFFER, vboNormals); GL_CHECK_ERRORS;
-			glBufferData(GL_ARRAY_BUFFER, normals_vec.size() * sizeof(GL_FLOAT), &normals_vec[0], GL_STREAM_DRAW); GL_CHECK_ERRORS;
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid *)0); GL_CHECK_ERRORS;
-			glEnableVertexAttribArray(1); GL_CHECK_ERRORS;
+			glBindBuffer(GL_ARRAY_BUFFER, vboNormals); 
+			glBufferData(GL_ARRAY_BUFFER, normals_vec.size() * sizeof(GL_FLOAT), &normals_vec[0], GL_STREAM_DRAW); 
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid *)0); 
+			glEnableVertexAttribArray(1);
 
 			//передаем в шейдерную программу атрибут текстурных координат
-			glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords); GL_CHECK_ERRORS;
-			glBufferData(GL_ARRAY_BUFFER, texcoords_vec.size() * sizeof(GL_FLOAT), &texcoords_vec[0], GL_STREAM_DRAW); GL_CHECK_ERRORS;
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (GLvoid *)0); GL_CHECK_ERRORS;
-			glEnableVertexAttribArray(2); GL_CHECK_ERRORS;
+			glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords);
+			glBufferData(GL_ARRAY_BUFFER, texcoords_vec.size() * sizeof(GL_FLOAT), &texcoords_vec[0], GL_STREAM_DRAW); 
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (GLvoid *)0); 
+			glEnableVertexAttribArray(2); 
 
 			//передаем в шейдерную программу индексы
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndices); GL_CHECK_ERRORS;
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_vec.size() * sizeof(GLuint), &indices_vec[0], GL_STREAM_DRAW); GL_CHECK_ERRORS;
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndices); 
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_vec.size() * sizeof(GLuint), &indices_vec[0], GL_STREAM_DRAW); 
 
-			glEnable(GL_PRIMITIVE_RESTART); GL_CHECK_ERRORS;
-			glPrimitiveRestartIndex(primRestart); GL_CHECK_ERRORS;
+			glEnable(GL_PRIMITIVE_RESTART); 
+			glPrimitiveRestartIndex(primRestart); 
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -265,7 +269,7 @@ public:
 	}
 
   public:
-	GLuint vao;
+	GLuint vao=0;
 
 	SeaPlane(const int size){
 		terrain_size = size;
@@ -274,8 +278,8 @@ public:
 	void Draw(	const ShaderProgram& shader, const float4x4& projection,const float4x4& view, 
 				const float4x4& model, const int view_mode){
             shader.StartUseShader();
-            shader.SetUniform("view",       view);       GL_CHECK_ERRORS;
-			shader.SetUniform("projection", projection); GL_CHECK_ERRORS;
+            shader.SetUniform("view",       view);       
+			shader.SetUniform("projection", projection); 
 			shader.SetUniform("model",      model);
 			shader.SetUniform("mode",       view_mode);
 
@@ -285,8 +289,8 @@ public:
 			glBindTexture(GL_TEXTURE_2D, aqua_tex);
             shader.SetUniform("aqua_tex", 5);
             
-            glDrawElements(GL_TRIANGLE_STRIP, numIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
-            glBindVertexArray(0); GL_CHECK_ERRORS;
+            glDrawElements(GL_TRIANGLE_STRIP, numIndices, GL_UNSIGNED_INT, nullptr); 
+            glBindVertexArray(0); 
             shader.StopUseShader();
         }
 };
